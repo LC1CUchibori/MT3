@@ -60,63 +60,48 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, con
 	const float kLonEvery = 2.0f * float(M_PI) / kSubdivision; // 経度分割1つ分の角度
 	const float kLatEvery = float(M_PI) / kSubdivision;        // 緯度分割1つ分の角度
 
-	// 緯度の方向に分割 -π/2 ～ π/2
-	for (uint32_t latIndex = 0; latIndex <= kSubdivision; ++latIndex)
-	{
-		float lat0 = float(M_PI) * (1.0f + kLatEvery*(float)latIndex / kSubdivision);
-		float z0 = sphere.radius * sin(lat0);
-		float zr0 = sphere.radius * cos(lat0);
-
-		float lat1 = float(M_PI) * (1.0f +kLatEvery* (float)(latIndex + 1) / kSubdivision);
-		float z1 = sphere.radius * sin(lat1);
-		float zr1 = sphere.radius * cos(lat1);
+	// 緯度の方向に分割　-π/2 ～ π/2
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
+		float lat = -float(M_PI) / 2.0f + kLatEvery * latIndex; // 現在の緯度
 
 		// 経度の方向に分割 0 ～ 2π
-		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex)
-		{
-			float lon0 = lonIndex * kLonEvery;
-			float x0 = zr0 * cos(lon0);
-			float y0 = zr0 * sin(lon0);
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
+			float lon = lonIndex * kLonEvery; // 現在の経度
 
-			float lon1 = (lonIndex + 1) * kLonEvery; // lonIndex の計算式を修正
-			float x1 = zr1 * cos(lon1);
-			float y1 = zr1 * sin(lon1);
+			// 現在の点を求める
+			float x1 = sphere.center.x + sphere.radius * std::cosf(lat) * std::cosf(lon);
+			float y1 = sphere.center.y + sphere.radius * std::sinf(lat);
+			float z1 = sphere.center.z + sphere.radius * std::cosf(lat) * std::sinf(lon);
 
-			// a のワールド座標系での位置を計算
-			Vector3 aWorld;
-			aWorld.x = sphere.center.x + x0;
-			aWorld.y = sphere.center.y + y0;
-			aWorld.z = sphere.center.z + z0;
+			// 次の点を求める（経度方向）
+			float x2 = sphere.center.x + sphere.radius * std::cosf(lat) * std::cosf(lon + kLonEvery);
+			float y2 = sphere.center.y + sphere.radius * std::sinf(lat);
+			float z2 = sphere.center.z + sphere.radius * std::cosf(lat) * std::sinf(lon + kLonEvery);
 
-			// b のワールド座標系での位置を計算
-			Vector3 bWorld;
-			bWorld.x = sphere.center.x + x1;
-			bWorld.y = sphere.center.y + y1;
-			bWorld.z = sphere.center.z + z1;
+			// 次の点を求める（緯度方向）
+			float x3 = sphere.center.x + sphere.radius * std::cosf(lat + kLatEvery) * std::cosf(lon);
+			float y3 = sphere.center.y + sphere.radius * std::sinf(lat + kLatEvery);
+			float z3 = sphere.center.z + sphere.radius * std::cosf(lat + kLatEvery) * std::sinf(lon);
 
-			// c のワールド座標系での位置を計算
-			Vector3 cWorld;
-			cWorld.x = sphere.center.x + x0;
-			cWorld.y = sphere.center.y + y0;
-			cWorld.z = sphere.center.z + z1;
+			// 3D座標をVector3にセット
+			Vector3 start(x1, y1, z1);
+			Vector3 end1(x2, y2, z2);
+			Vector3 end2(x3, y3, z3);
 
-			// a のスクリーン座標系での位置を計算
-			Vector3 aScreen = Transform(Transform(aWorld, viewProjectionMatrix), viewportMatrix);
+			// 座標変換を行う
+			start = Transform(start, viewProjectionMatrix);
+			start = Transform(start, viewportMatrix);
+			end1 = Transform(end1, viewProjectionMatrix);
+			end1 = Transform(end1, viewportMatrix);
+			end2 = Transform(end2, viewProjectionMatrix);
+			end2 = Transform(end2, viewportMatrix);
 
-			// b のスクリーン座標系での位置を計算
-			Vector3 bScreen = Transform(Transform(bWorld, viewProjectionMatrix), viewportMatrix);
-
-			// c のスクリーン座標系での位置を計算
-			Vector3 cScreen = Transform(Transform(cWorld, viewProjectionMatrix), viewportMatrix);
-
-			// a, b, c をスクリーン座標系で描画
-			Novice::DrawLine(int(aScreen.x), int(aScreen.y), int(bScreen.x), int(bScreen.y), color);
-			Novice::DrawLine(int(aScreen.x), int(aScreen.y), int(cScreen.x), int(cScreen.y), color);
-			Novice::DrawLine(int(bScreen.x), int(bScreen.y), int(cScreen.x), int(cScreen.y), color);
+			// 線を描画
+			Novice::DrawLine(int(start.x), int(start.y), int(end1.x), int(end1.y), color);
+			Novice::DrawLine(int(start.x), int(start.y), int(end2.x), int(end2.y), color);
 		}
 	}
 }
-
 
 const char kWindowTitle[] = "LE2C_ウチボリ_ユウタ_タイトル";
 
