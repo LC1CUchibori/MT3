@@ -33,25 +33,6 @@ void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMa
 
 		Novice::DrawLine(int(startScreen.x),int(startScreen.y),int(endScreen.x),int(endScreen.y),color);
 	}
-
-	for (uint32_t zIndex = 0; zIndex <= kSubdivision; ++zIndex)
-	{
-		float z = -kGridHalfWidth + (zIndex * kGridEvery);
-		unsigned int  color = 0xAAAAAAFF;
-
-		Vector3 start{ z,0.0f,-kGridHalfWidth };
-		Vector3 end{ z,0.0f,kGridHalfWidth };
-
-		Vector3 startScreen = Transform(Transform(start, viewProjectionMatrix), viewportMatrix);
-		Vector3 endScreen = Transform(Transform(end, viewProjectionMatrix), viewportMatrix);
-
-		if (z == 0.0f)
-		{
-			color = BLACK;
-		}
-
-		Novice::DrawLine(int(startScreen.x),int(startScreen.y),int(endScreen.x),int(endScreen.y),(int)color);
-	}
 }
 
 void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color)
