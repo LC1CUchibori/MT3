@@ -54,6 +54,14 @@ Vector3 Normalize(const Vector3& v) {
 
 	return result;
 }
+
+Vector3 Perpendicular(const Vector3& vector){
+	if (vector.x != 0.0f || vector.y != 0.0f) {
+		return{ -vector.y,vector.x,0.0f };
+	}
+	return{ 0.0f,-vector.z,vector.y };
+}
+
 // ベクトルの大きさの2乗を計算する関数
 float MagnitudeSquared(const Vector3& v) {
 	return v.x * v.x + v.y * v.y + v.z * v.z;
@@ -87,6 +95,7 @@ int check(double mat[N][N], double inv[N][N]) {
 
 	return 1;
 }
+
 // 行列の加法
 Matrix4x4 Add(const Matrix4x4& m1, const Matrix4x4& m2) {
 	Matrix4x4 result = { 0 };
