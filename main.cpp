@@ -4,7 +4,7 @@
 #include <math.h>
 #define _USE_MATH_DEFINES
 #include "imgui.h"
-const char kWindowTitle[] = "LE2C_05_ウノ_リュウト";
+const char kWindowTitle[] = "LE2C_04_ウチボリ_ユウタ";
 int kWindowWidth = 1280;
 int kWindowHeight = 720;
 
@@ -54,10 +54,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewMatrix, projectionMatrix);
 		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
-		/*Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), viewportMatrix);
-		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), viewportMatrix);
-		Vector3 start2 = Transform(Transform(segment2.origin, ViewProjectionMatrix), viewportMatrix);
-		Vector3 end2 = Transform(Transform(Add(segment2.origin, segment2.diff), ViewProjectionMatrix), viewportMatrix);*/
+		
 		if (IsCollision(sphere, aabb[0])) {
 			AABBColor = RED;
 		}

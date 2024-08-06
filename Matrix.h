@@ -6,7 +6,7 @@
 #include<Vector3.h>
 #include <assert.h>
 #include<cmath>
-
+#include<algorithm>
 #define N 4 //逆行列を求める行列の行数・列数 
 #include <math.h>
 //#define _USE_MATH_DEFINES
@@ -645,4 +645,20 @@ bool IsCollision(const AABB& a, const AABB& b) {
 		return true;
 	}
 	return false;
+}
+bool IsCollision(const Sphere& sphere, const AABB& aabb) {
+	// 最近接点を求める
+	Vector3 closestPoint{ std::clamp(sphere.center.x,aabb.min.x,aabb.max.x),
+		std::clamp(sphere.center.y,aabb.min.y,aabb.max.y) ,
+		std::clamp(sphere.center.z,aabb.min.z,aabb.max.z) };
+	// 最近接点と球の中心との距離を求める
+	float distance = Length(closestPoint - sphere.center);
+
+	// 中心間の距離が2つの円の半径の合計よりも小さい場合、衝突しているとみなす
+	if (distance <= sphere.radius) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
