@@ -1,4 +1,4 @@
-
+#define NOMINMAX
 #include <Novice.h>
 #include"Debug.h"
 #include <math.h>
@@ -17,16 +17,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
 	Vector3 cameraPosition{ 0.0f, 1.0f, -5.0f };
-	AABB aabb[1];
-	aabb[0].min = { -0.5f,-0.5f,-0.5f };
-	aabb[0].max = { 0.5f,0.5f,0.5f };
-	Segment segment{
-		{-0.7f,0.3f,0.0f},
-		{2.0f,-0.5f,0.0f},
-	};
-	int AABBColor = 0;
-	static bool isDebugCamera = false;
 
+	Vector3 constrolPoints[3] = {
+		{-0.8f,0.58f,1.0f},
+		{1.76f,1.0f,-0.3f},
+		{0.94f,-0.7f,2.3f},
+	};
+
+	static bool isDebugCamera = false;
+	Vector3 rotate{ 0.0f,0.0f,0.0f };
 	Vector2Int mouse;
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -54,16 +53,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
 		Matrix4x4 ViewProjectionMatrix = Multiply(viewMatrix, projectionMatrix);
 		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
+		// 回転行列を生成
+		Matrix4x4 rotateMatrix = Multiply(MakeRotateXMatrix(rotate.x), Multiply(MakeRotateYMatrix(rotate.y), MakeRotateZMatrix(rotate.z)));
 
-		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), viewportMatrix);
-		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), viewportMatrix);
-		if (IsCollision(aabb[0], segment)) {
-			AABBColor = RED;
-		}
-		else
-		{
-			AABBColor = WHITE;
-		}
+
+
+
 		///
 		/// ↑更新処理ここまで
 		///
@@ -76,14 +71,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x, 0.01f);
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x, 0.01f);
 		ImGui::DragFloat3("CameraPosition", &cameraPosition.x, 0.01f);
-		ImGui::DragFloat3("AABB1:MIN", &aabb[0].min.x, 0.01f);
-		ImGui::DragFloat3("AABB1:MAX", &aabb[0].max.x, 0.01f);
+
+		ImGui::DragFloat3("Point0", &constrolPoints[0].x, 0.01f);
+		ImGui::DragFloat3("Point1", &constrolPoints[1].x, 0.01f);
+		ImGui::DragFloat3("Point2", &constrolPoints[2].x, 0.01f);
+
 		ImGui::End();
 
-		DrawAABB(aabb[0], ViewProjectionMatrix, viewportMatrix, AABBColor);
 
-		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
-
+		DrawBezier(constrolPoints[0], constrolPoints[1], constrolPoints[2], ViewProjectionMatrix, viewportMatrix, BLUE);
 		DrawGrid(ViewProjectionMatrix, viewportMatrix);
 		///
 		/// ↑描画処理ここまで
