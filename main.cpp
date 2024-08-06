@@ -5,7 +5,7 @@
 #define _USE_MATH_DEFINES
 #include "imgui.h"
 #include <Vector2Int.h>
-const char kWindowTitle[] = "LE2C_05_ウノ_リュウト";
+const char kWindowTitle[] = "LE2C_04_ウチボリ_ユウタ";
 int kWindowWidth = 1280;
 int kWindowHeight = 720;
 
