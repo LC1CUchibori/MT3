@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿
+#pragma once
 #include <Novice.h>
 #include<Matrix4x4.h>
 #include<Vector2.h>
@@ -8,8 +9,36 @@
 
 #define N 4 //逆行列を求める行列の行数・列数 
 #include <math.h>
-#define _USE_MATH_DEFINES
-
+//#define _USE_MATH_DEFINES
+#define M_PI 3.14
+struct Sphere {
+	Vector3 center; // !< 中心点
+	float radius;   // !< 半径
+};
+struct Line {
+	Vector3 origin; // !<始点
+	Vector3 diff;   // !<終点への差分ベクトル
+};
+struct Ray {
+	Vector3 origin; // !<始点
+	Vector3 diff;   // !<終点への差分ベクトル
+};
+struct Segment {
+	Vector3 origin; // !<始点
+	Vector3 diff;   // !<終点への差分ベクトル
+};
+struct Plane {
+	Vector3 normal; //!< 法線
+	float distance; //!< 距離
+};
+struct Triangle
+{
+	Vector3 vertices[3];//!< 頂点
+};
+struct AABB {
+	Vector3 min; //!<最小点
+	Vector3 max; //!<最大点
+};
 // 加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
@@ -484,4 +513,136 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2) {
 	result.y = (v1.z * v2.x) - (v1.x * v2.z);
 	result.z = (v1.x * v2.y) - (v1.y * v2.x);
 	return result;
+}
+/*
+float Dot(const Vector3& v1,const Vector3& v2 ) {
+float result;
+result = (v1.x * v2.x) + (v1.y * v2.y)+ (v1.z * v2.z);
+return result;
+}
+*/
+
+
+//3次元ベクトル a をベクトル b に正射影する関数
+Vector3 Project(const Vector3& v1, const Vector3& v2) {
+	float dot = Dot(v1, v2);
+	float magSquared = MagnitudeSquared(v2);
+	float scalar = dot / magSquared;
+	return { v2.x * scalar, v2.y * scalar, v2.z * scalar };
+}
+//最近接点を計算する関数
+Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
+	Vector3 pointOnLine = segment.origin; // 直線上の任意の点はセグメントの始点と同じと仮定
+	float dot = Dot(segment.diff, Subtract(point, pointOnLine));
+	float magSquared = MagnitudeSquared(segment.diff);
+	float t = dot / magSquared;
+	return { pointOnLine.x + segment.diff.x * t, pointOnLine.y + segment.diff.y * t, pointOnLine.z + segment.diff.z * t };
+}
+
+bool IsCollision(const Sphere& s1, const Sphere& s2) {
+	// 2つの円の中心間の距離を計算
+	float distance = float(std::sqrt(std::pow(s2.center.x - s1.center.x, 2) + std::pow(s2.center.y - s1.center.y, 2) + std::pow(s2.center.z - s1.center.z, 2)));
+	// 中心間の距離が2つの円の半径の合計よりも小さい場合、衝突しているとみなす
+	if (distance <= (s1.radius + s2.radius)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+bool IsCollision(const Sphere& sphere, const Plane& plane) {
+	// 2つの円と平面の中心間の距離を計算
+	float distance = std::abs((Dot(plane.normal, sphere.center)) - plane.distance);
+	//float distance = float(std::sqrt(std::pow(plane.normal.x - sphere.center.x, 2) + std::pow(plane.normal.y - sphere.center.y, 2) + std::pow(plane.normal.z - sphere.center.z, 2)));
+	// 中心間の距離が2つの円の半径の合計よりも小さい場合、衝突しているとみなす
+	if (distance <= sphere.radius) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+bool IsCollision(const Segment& segment, const Plane& plane) {
+	// まず垂直判定を行うために、法線と線の内積を求める
+	float dot = Dot(plane.normal, segment.diff);
+	// 垂直＝平行であるので、衝突しているはずがない
+	if (dot == 0.0f) {
+		return false;
+	}
+	// ｔを求める
+	float t = (plane.distance - Dot(segment.origin, plane.normal)) / dot;
+
+	// 
+	//float distance = Dot(segment.origin + (segment.diff * t), plane.normal);
+	if (t >= 0.0f && t <= 1.0f) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+Plane CalculatePlane(Triangle triangle)
+{
+	Vector3 v1 = triangle.vertices[0];
+	Vector3 v2 = triangle.vertices[1];
+	Vector3 v3 = triangle.vertices[2];
+
+	Vector3 edge1 = v2 - v1;
+	Vector3 edge2 = v3 - v1;
+	Vector3 normal = Normalize(Cross(edge1, edge2));
+
+	float distance = Dot(normal, v1);
+
+	return Plane{ normal = normal, distance = distance };
+}
+Vector3 CalculateIntersection(Segment segment, Plane plane)
+{
+	Vector3 p0 = segment.origin;
+	Vector3 p1 = segment.origin + segment.diff;
+	Vector3 lineDir = Normalize((p1 - p0));
+
+	float t = (plane.distance - Dot(plane.normal, p0)) / Dot(plane.normal, lineDir);
+
+	return p0 + lineDir * t;
+}
+Vector3 CalculateVector(Vector3 vertex, Vector3 intersectionPoint)
+{
+	return intersectionPoint - vertex;
+}
+bool IsCollision(const Triangle& triangle, const Segment& segment) {
+	Plane plane = CalculatePlane(triangle);
+	if (!IsCollision(segment, plane)) {
+		return false;
+	}
+	Vector3 v01 = Subtract(triangle.vertices[1], triangle.vertices[0]);
+	Vector3 v12 = Subtract(triangle.vertices[2], triangle.vertices[1]);
+	Vector3 v20 = Subtract(triangle.vertices[0], triangle.vertices[2]);
+	Vector3 p = CalculateIntersection(segment, plane);
+	Vector3 cross01 = Cross(v01, CalculateVector(triangle.vertices[0], p));
+	Vector3 cross12 = Cross(v12, CalculateVector(triangle.vertices[1], p));
+	Vector3 cross20 = Cross(v20, CalculateVector(triangle.vertices[2], p));
+	// すべての小三角形のクロス積と法線が同じ方向を向いていたら衝突
+	if (Dot(cross01, plane.normal) >= 0.0f &&
+		Dot(cross12, plane.normal) >= 0.0f &&
+		Dot(cross20, plane.normal) >= 0.0f) {
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+Vector3 Perpendicular(const Vector3& vector) {
+	if (vector.x != 0.0f || vector.y != 0.0f) {
+		return{ -vector.y,vector.x,0.0f };
+	}
+	return{ 0.0f,-vector.z,vector.y };
+}
+bool IsCollision(const AABB& a, const AABB& b) {
+	if ((a.min.x <= b.max.x && a.max.x >= b.min.x) &&// x軸
+		(a.min.y <= b.max.y && a.max.y >= b.min.y) &&// y軸
+		(a.min.z <= b.max.z && a.max.z >= b.min.z)) {// z軸
+		return true;
+	}
+	return false;
 }
