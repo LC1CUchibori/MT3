@@ -1,5 +1,4 @@
-﻿
-#pragma once
+﻿#pragma once
 #include <Novice.h>
 #include<Matrix4x4.h>
 #include<Vector2.h>
@@ -39,6 +38,10 @@ struct AABB {
 	Vector3 min; //!<最小点
 	Vector3 max; //!<最大点
 };
+//struct Vector2Int {
+//	int x;
+//	int y;
+//};
 // 加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
@@ -661,4 +664,38 @@ bool IsCollision(const Sphere& sphere, const AABB& aabb) {
 	else {
 		return false;
 	}
+}
+bool IsCollision(const AABB& aabb, const Segment& segment) {
+	float tmin = (aabb.min.x - segment.origin.x) / segment.diff.x;
+	float tmax = (aabb.max.x - segment.origin.x) / segment.diff.x;
+
+	if (tmin > tmax) std::swap(tmin, tmax);
+
+	float tymin = (aabb.min.y - segment.origin.y) / segment.diff.y;
+	float tymax = (aabb.max.y - segment.origin.y) / segment.diff.y;
+
+	if (tymin > tymax) std::swap(tymin, tymax);
+
+	if ((tmin > tymax) || (tymin > tmax))
+		return false;
+
+	if (tymin > tmin)
+		tmin = tymin;
+	if (tymax < tmax)
+		tmax = tymax;
+
+	float tzmin = (aabb.min.z - segment.origin.z) / segment.diff.z;
+	float tzmax = (aabb.max.z - segment.origin.z) / segment.diff.z;
+
+	if (tzmin > tzmax) std::swap(tzmin, tzmax);
+
+	if ((tmin > tzmax) || (tzmin > tmax))
+		return false;
+
+	if (tzmin > tmin)
+		tmin = tzmin;
+	if (tzmax < tmax)
+		tmax = tzmax;
+
+	return ((tmin < 1.0f) && (tmax > 0.0f));
 }
